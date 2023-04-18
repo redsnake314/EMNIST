@@ -141,7 +141,7 @@ def build_net(training_data, width=28, height=28, verbose=False):
     if verbose == True: print(model.summary())
     return model
 
-def train(model, training_data, callback=True, batch_size=256, epochs=10):
+def train(model, training_data, callback=True, batch_size=256, epochs=8):
     (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
 
     # convert class vectors to binary class matrices
@@ -163,11 +163,15 @@ def train(model, training_data, callback=True, batch_size=256, epochs=10):
     print('Test score:', score[0])
     print('Test accuracy:', score[1])
 
+
+    #my way
+    model.save("mynewmodel")
     # Offload model to file
-    model_yaml = model.to_yaml()
-    with open("bin/model.yaml", "w") as yaml_file:
-        yaml_file.write(model_yaml)
-    save_model(model, 'bin/model.h5')
+    # model_yaml = model.to_json()
+    # with open("bin/model.json", "w") as yaml_file:
+    #     yaml_file.write(model_yaml)
+    # save_model(model, 'bin/model.h5')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(usage='A training program for classifying the EMNIST dataset')

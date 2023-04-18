@@ -1,15 +1,22 @@
 # Mute tensorflow debugging information on console
 import os
+
+import keras
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from flask import Flask, request, render_template, jsonify
-from scipy.misc import imsave, imread, imresize
 import numpy as np
 import argparse
-from keras.models import model_from_yaml
+from keras.models import model_from_json
 import re
 import base64
 import pickle
+import imageio
+import skimage
+from PIL import Image
+import cv2
+from training import load_data, build_net, train
 
 app = Flask(__name__)
 
@@ -24,14 +31,14 @@ def load_model(bin_dir):
     '''
 
     # load YAML and create model
-    yaml_file = open('%s/model.yaml' % bin_dir, 'r')
-    loaded_model_yaml = yaml_file.read()
-    yaml_file.close()
-    model = model_from_yaml(loaded_model_yaml)
-
-    # load weights into new model
-    model.load_weights('%s/model.h5' % bin_dir)
-    return model
+    # yaml_file = open('%s/model.json' % bin_dir, 'r')
+    # loaded_model_yaml = yaml_file.read()
+    # yaml_file.close()
+    # model = model_from_json(loaded_model_yaml)
+    #
+    # # load weights into new model
+    # model.load_weights('%s/model.h5' % bin_dir)
+    return keras.models.load_model("mynewmodel")
 
 @app.route("/")
 def index():
@@ -70,7 +77,7 @@ def predict():
     parseImage(request.get_data())
 
     # read parsed image back in 8-bit, black and white mode (L)
-    x = imread('output.png', mode='L')
+    x = cv2.imread('output.png')
     x = np.invert(x)
 
     ### Experimental
@@ -82,11 +89,13 @@ def predict():
     # x = x.T
 
     # Visualize new array
-    imsave('resized.png', x)
-    x = imresize(x,(28,28))
+    imageio.imwrite('resized.png', x)
+    x = skimage.transform.resize(x,(28,28))
 
     # reshape image data for use in neural network
-    x = x.reshape(1,28,28,1)
+    x = x.reshape(-1,28,28,1)
+
+    print(type(x))
 
     # Convert type to float32
     x = x.astype('float32')
